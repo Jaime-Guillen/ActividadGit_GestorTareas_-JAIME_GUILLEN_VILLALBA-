@@ -9,6 +9,7 @@
       font-family: Arial, Helvetica, sans-serif;
       margin: 24px;
       max-width: 900px;
+      line-height: 1.6;
     }
 
     h1 { margin-bottom: 8px; }
@@ -41,10 +42,9 @@
       font-weight: 600;
     }
 
-    /* Colores iniciales (se ajustarán en la actividad) */
-    #btnAdd { background-color: #f41a0a; color: white; } /* verde */
-    #btnDel { background-color: #2b00ff; color: white; } /* rojo */
-    #btnEdit { background-color: #0acb0a; color: white; } /* azul */
+    #btnAdd { background-color: #0acb0a; color: white; } 
+    #btnEdit { background-color: #2b00ff; color: white; } 
+    #btnDel { background-color: #f41a0a; color: white; } 
 
     ul {
       list-style: none;
@@ -55,51 +55,53 @@
     li {
       display: grid;
       grid-template-columns: 1fr auto auto;
-      gap: 8px;
+      gap: 12px;
       align-items: center;
-      padding: 10px 12px;
+      padding: 12px;
       border: 1px solid #eee;
       border-radius: 8px;
       margin-bottom: 8px;
+      cursor: pointer;
+      background-color: white; /* Siempre blanco */
+    }
+    
+    /* Sin sombreados ni fondos de color al seleccionar */
+    .selected {
+      border: 1px solid #333; /* Solo un borde un poco más oscuro */
     }
 
     .tag {
       font-size: 12px;
-      padding: 4px 8px;
+      padding: 4px 10px;
       border-radius: 999px;
-      background: #f1f1f1;
+      background: white; /* Fondo blanco */
       color: #333;
+      border: 1px solid #ccc; /* Borde sutil */
       justify-self: end;
     }
 
     .muted { color: #777; font-size: 14px; }
-    .danger { color: #b71c1c; }
-    .ok { color: #1b5e20; }
+    .danger { color: #b71c1c; font-weight: bold; }
+    .ok { color: #1b5e20; font-weight: bold; }
   </style>
 </head>
 <body>
+
   <h1>Gestor de tareas</h1>
-  <p class="muted">Plantilla base para la actividad de Git. Completa las funciones marcadas como <strong>TODO</strong>.</p>
+  <p class="muted">Plantilla base para la actividad de Git. Completa las funciones marcadas como TODO.</p>
 
   <div class="panel">
-    <input id="taskInput" type="text" placeholder="Escribe una tarea (ej: 'Estudiar Git')" />
+    <input id="taskInput" type="text" placeholder="Escribe una tarea..." />
     <button id="btnAdd" onclick="addTask()">Añadir tarea</button>
     <button id="btnEdit" onclick="editSelected()">Editar tarea</button>
     <button id="btnDel" onclick="deleteSelected()">Eliminar tarea</button>
   </div>
-
-  <p class="muted">
-    Selecciona una tarea haciendo click sobre ella. La tarea seleccionada se marca como <span class="tag">Seleccionada</span>.
-  </p>
 
   <ul id="taskList"></ul>
 
   <p id="status" class="muted"></p>
 
   <script>
-    // =========================
-    // Datos (NO borrar)
-    // =========================
     let tasks = [
       { id: 1, text: "Ejemplo: Clonar repositorio", done: false },
       { id: 2, text: "Ejemplo: Crear rama y hacer commits", done: false }
@@ -108,9 +110,6 @@
     let selectedId = null;
     let nextId = 3;
 
-    // =========================
-    // Utilidades (NO borrar)
-    // =========================
     function setStatus(message, type = "muted") {
       const el = document.getElementById("status");
       el.className = type;
@@ -122,24 +121,26 @@
       list.innerHTML = "";
 
       if (tasks.length === 0) {
-        list.innerHTML = `<li><span class="muted">No hay tareas. Añade una nueva.</span><span></span><span></span></li>`;
+        list.innerHTML = `<li><span class="muted">No hay tareas.</span></li>`;
         return;
       }
 
       tasks.forEach(t => {
         const li = document.createElement("li");
-        li.dataset.id = t.id;
+        if (t.id === selectedId) li.classList.add("selected");
 
         const text = document.createElement("span");
         text.textContent = t.text;
 
-        const tag = document.createElement("span");
-        tag.className = "tag";
-        tag.textContent = (t.id === selectedId) ? "Seleccionada" : "";
-
         const small = document.createElement("span");
         small.className = "muted";
         small.textContent = `ID: ${t.id}`;
+
+        const tag = document.createElement("span");
+        if (t.id === selectedId) {
+            tag.className = "tag";
+            tag.textContent = "✓ Seleccionada";
+        }
 
         li.appendChild(text);
         li.appendChild(small);
@@ -147,7 +148,7 @@
 
         li.onclick = () => {
           selectedId = t.id;
-          setStatus(`Tarea seleccionada: ID ${selectedId}`, "ok");
+          setStatus(`Tarea ID ${selectedId} marcada.`, "ok");
           render();
         };
 
@@ -163,65 +164,46 @@
       document.getElementById("taskInput").value = "";
     }
 
-    // =========================
-    // TODO: Funciones a implementar por el alumnado
-    // =========================
-
-    // Parte "Añadir tarea" (rama principal)
-    
-
-    // Rama "eliminar"
-    
-    // Rama "editar"
-    function editSelected() {
-      
-      
-    }
-
-    // =========================
-    // Inicio
-    // =========================
-    render();
-    setStatus("Listo. Selecciona una tarea o añade una nueva.");
-  
     function addTask() {
       const text = readInputTrimmed();
       if (text === "") {
-        setStatus("Error: La tarea no puede estar vacía.", "danger");
+        setStatus("Error: Escribe una tarea.", "danger");
         return;
       }
-
-      tasks.push({
-        id: nextId++,
-        text,
-        done: false });
-        
+      tasks.push({ id: nextId++, text: text, done: false });
       clearInput();
-      setStatus("Tarea añadida correctamente.", "ok");
+      setStatus("Tarea añadida.", "ok");
       render();
     }
 
     function deleteSelected() {
-      if(selectedId === null) {
-        setStatus("Error: No hay ninguna tarea seleccionada.", "danger");
+      if (selectedId === null) {
+        setStatus("Error: Selecciona una tarea primero.", "danger");
         return;
       }
-
-      const before = tasks.length;
       tasks = tasks.filter(t => t.id !== selectedId);
-
-      if (tasks.length === before){
-        // Por si selectedId apunta a una tarea que ya no existe (ej: se ha eliminado desde otra rama)
-        setStatus("No se encontró la tarea seleccionada para eliminar.", "danger");
-        selectedId = null;
-        render();
-        return;
-      }
-
-      setStatus(`Tarea con ID ${selectedId} eliminada.`, "ok");
+      setStatus("Tarea eliminada.", "ok");
       selectedId = null;
       render();
     }
+
+    function editSelected() {
+      if (selectedId === null) {
+        setStatus("Error: Selecciona una tarea primero.", "danger");
+        return;
+      }
+      const task = tasks.find(t => t.id === selectedId);
+      let newText = readInputTrimmed() || prompt("Nuevo texto:", task.text);
+
+      if (newText !== null && newText.trim() !== "") {
+        task.text = newText.trim();
+        clearInput();
+        setStatus("Tarea actualizada.", "ok");
+        render();
+      }
+    }
+
+    render();
   </script>
 </body>
 </html>
